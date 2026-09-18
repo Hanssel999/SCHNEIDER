@@ -45,14 +45,14 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = "config.wsgi.application"
 
-DB_ENGINE = os.getenv("DB_ENGINE", "sqlite").lower()
+DB_ENGINE = os.getenv("DB_ENGINE", "postgresql").lower()
 if DB_ENGINE == "postgresql":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.getenv("DB_NAME", "schneider"),
             "USER": os.getenv("DB_USER", "imonstar"),
-            "PASSWORD": os.getenv("DB_PASSWORD", ""),
+            "PASSWORD": os.getenv("DB_PASSWORD", "Minor123!@#123"),
             "HOST": os.getenv("DB_HOST", "127.0.0.1"),
             "PORT": os.getenv("DB_PORT", "5432"),
         }
