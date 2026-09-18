@@ -106,13 +106,13 @@ export function DriverLogPage() {
 			.then((data) => {
 				setRouteError(null);
 				setRouteData(data.intake);
-				if (data.route?.timeline?.length && data.intake) applyGeneratedRoute(data.route, data.intake);
+				if (data.route?.timeline?.length && data.intake) applyGeneratedRoute(data.route, data.intake, data.daily_log);
 			})
 			.catch(() => setRouteError("Could not retrieve route data. Check that the backend is running."))
 			.finally(() => setRouteChecked(true));
 	}, []);
 
-	const applyGeneratedRoute = (route: GeneratedRoute, intake: DriverRouteIntake = routeData!) => {
+	const applyGeneratedRoute = (route: GeneratedRoute, intake: DriverRouteIntake = routeData!, savedDailyLog?: { log: Record<string, unknown>; timeline: GeneratedRoute["timeline"]; day: number }) => {
 		setGeneratedRoute(route);
 		setSelectedDay(0);
 		const firstDay = route.daily_logs[0]?.events ?? route.timeline;
@@ -127,6 +127,11 @@ export function DriverLogPage() {
 			truckMiles: firstDayLog?.truck_miles ?? drivingMilesForDay(firstDay),
 			dutyHours: getDutyHours(firstDay),
 		}));
+		if (savedDailyLog) {
+			setSelectedDay(savedDailyLog.day);
+			setTimeline(savedDailyLog.timeline);
+			setLog((current) => ({ ...current, ...savedDailyLog.log, dutyHours: getDutyHours(savedDailyLog.timeline) }));
+		}
 	};
 
 	const selectDay = (dayIndex: number) => {
@@ -315,10 +320,15 @@ export function DriverLogPage() {
 		setSaved(false);
 	};
 
-	const handleSubmit = (event: FormEvent) => {
+	const handleSubmit = async (event: FormEvent) => {
 		event.preventDefault();
-		setSaved(true);
-		setMode("view");
+		try {
+			await driverRouteService.saveDailyLog({ log, timeline, day: selectedDay });
+			setSaved(true);
+			setMode("view");
+		} catch (error) {
+			setRouteError(error instanceof Error ? error.message : "Could not save the daily log.");
+		}
 	};
 
 	if (!routeChecked || !routeData) {
@@ -433,7 +443,7 @@ export function DriverLogPage() {
 						)}
 						{saved && (
 							<p className="saved-message">
-								Log saved locally and ready to share.
+								Log saved to your driver account.
 							</p>
 						)}
 					</form>

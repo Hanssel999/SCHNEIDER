@@ -22,16 +22,28 @@ export type GeneratedRoute = {
   geometry: Array<[number, number]>;
 };
 
-export type DriverRouteResponse = { intake: DriverRouteIntake; route: GeneratedRoute };
+export type DriverLogData = {
+  log: Record<string, unknown>;
+  timeline: GeneratedRoute["timeline"];
+  day: number;
+};
+
+export type DriverRouteResponse = { intake: DriverRouteIntake; route: GeneratedRoute; daily_log?: DriverLogData };
 
 export const driverRouteService = {
   get() {
-    return apiRequest<{ intake: DriverRouteIntake | null; route: GeneratedRoute | null }>("/auth/driver-route/");
+    return apiRequest<{ intake: DriverRouteIntake | null; route: GeneratedRoute | null; daily_log?: DriverLogData }>("/auth/driver-route/");
   },
   save(payload: DriverRouteIntake) {
     return apiRequest<DriverRouteResponse>("/auth/driver-route/", {
       method: "POST",
       body: JSON.stringify(payload),
+    });
+  },
+  saveDailyLog(dailyLog: DriverLogData) {
+    return apiRequest<{ daily_log: DriverLogData }>("/auth/driver-route/", {
+      method: "PATCH",
+      body: JSON.stringify({ daily_log: dailyLog }),
     });
   },
 };
