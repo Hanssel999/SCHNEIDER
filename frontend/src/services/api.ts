@@ -5,10 +5,12 @@ const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 type ApiError = Record<string, unknown>;
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const accessToken = localStorage.getItem("schneider_access_token");
   const response = await fetch(`${apiUrl}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...options.headers,
     },
   });

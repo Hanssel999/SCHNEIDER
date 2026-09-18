@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.views import APIView
 
 from common.responses import success_response
@@ -8,6 +8,13 @@ from .models import DriverRouteIntake
 from .route_planner import plan_route
 from .serializers import DriverRouteIntakeSerializer, SignInSerializer, SignUpSerializer, UserSerializer
 from .services import AuthenticationService
+
+
+class IsDriver(BasePermission):
+    message = "Only driver accounts can access the driver log."
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and request.user.role == "driver")
 
 
 class SignUpView(APIView):
@@ -34,12 +41,47 @@ class SignInView(APIView):
 
 
 class DriverRouteIntakeView(APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsDriver,)
 
     def get(self, request):
         intake = DriverRouteIntake.objects.order_by("-updated_at").first()
         route = None
         if intake:
+            stored_daily_logs = intake.generated_daily_logs
+            first_day_events = stored_daily_logs[0].get("events", []) if stored_daily_logs else []
+            has_work_event = any(event.get("status") in ("Driving", "On duty") for event in first_day_events)
+            has_legacy_fuel_event = any(
+                event.get("note") == "Fueling checkpoint" and event.get("stop_type") != "fuel"
+                for daily_log in stored_daily_logs
+                for event in daily_log.get("events", [])
+            )
+            has_legacy_daily_rest = any(
+                event.get("location") == "Rest break"
+                and event.get("note") == "Sleeper berth"
+                for daily_log in stored_daily_logs
+                for event in daily_log.get("events", [])
+            )
+            has_redundant_cycle_rest = any(
+                any(event.get("auto_rest") for event in daily_log.get("events", []))
+                and any(event.get("location") == "Cycle reset" for event in daily_log.get("events", []))
+                for daily_log in stored_daily_logs
+            )
+            has_legacy_geometry = not intake.route_geometry
+            if (first_day_events and not has_work_event) or has_legacy_fuel_event or has_legacy_daily_rest or has_redundant_cycle_rest or has_legacy_geometry:
+                route = plan_route({
+                    "current_latitude": intake.current_latitude,
+                    "current_longitude": intake.current_longitude,
+                    "current_location": intake.current_location,
+                    "pickup_latitude": intake.pickup_latitude,
+                    "pickup_longitude": intake.pickup_longitude,
+                    "pickup_location": intake.pickup_location,
+                    "dropoff_latitude": intake.dropoff_latitude,
+                    "dropoff_longitude": intake.dropoff_longitude,
+                    "dropoff_location": intake.dropoff_location,
+                    "current_cycle_used": intake.current_cycle_used,
+                })
+            if route is not None:
+                return success_response({"intake": DriverRouteIntakeSerializer(intake).data, "route": route})
             route = {
                 "distance_miles": float(intake.route_distance_miles),
                 "cycle_after_hours": 0,
@@ -54,6 +96,7 @@ class DriverRouteIntakeView(APIView):
         intake = DriverRouteIntake.objects.order_by("-updated_at").first()
         serializer = DriverRouteIntakeSerializer(intake, data=request.data)
         serializer.is_valid(raise_exception=True)
+        print(serializer.validated_data)
         try:
             route = plan_route(serializer.validated_data)
         except ValueError as error:

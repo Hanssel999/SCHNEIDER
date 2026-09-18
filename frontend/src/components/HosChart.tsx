@@ -23,7 +23,9 @@ export function HosChart({ events, editable = false, onUpdate, onSelect }: HosCh
     const y = (row: number) => top + row * rowHeight + rowHeight / 2;
     const rowForStatus = (status: string) => dutyRows.indexOf(status);
     const orderedEvents = [...events].sort((leftEvent, rightEvent) => toMinutes(leftEvent.start) - toMinutes(rightEvent.start));
-    const chartKeypoints = orderedEvents.map((event) => ({ event, field: "start" as const }));
+    const chartKeypoints = orderedEvents
+        .filter((event, index) => index === orderedEvents.length - 1 || event.start !== orderedEvents[index + 1].start)
+        .map((event) => ({ event, field: "start" as const }));
     const dragRef = useRef<{ event: TimelineEvent; field: "start" | "end" } | null>(null);
     const workEvents = orderedEvents.filter((event) => {
         const status = event.status.trim().toLowerCase();
@@ -34,7 +36,7 @@ export function HosChart({ events, editable = false, onUpdate, onSelect }: HosCh
     const nonDrivingStatuses = new Set(["off duty", "sleeper", "on duty"]);
     const notDrivingSections = orderedEvents.filter((event) => {
         const status = event.status.trim().toLowerCase();
-        return nonDrivingStatuses.has(status) && toMinutes(event.start) >= workStart && toMinutes(event.end) <= workEnd && event.end !== "24:00";
+        return !event.auto_rest && nonDrivingStatuses.has(status) && toMinutes(event.start) >= workStart && toMinutes(event.end) <= workEnd && event.end !== "24:00";
     });
     const remarkLineTop = top + chartHeight + 50;
 

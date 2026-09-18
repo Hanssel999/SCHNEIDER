@@ -23,6 +23,20 @@ type SignUpResponse = {
 };
 
 export const authService = {
+  getSessionUser(): FleetUser | null {
+    const storedUser = localStorage.getItem("schneider_user");
+    if (!storedUser) return null;
+    try {
+      return JSON.parse(storedUser) as FleetUser;
+    } catch {
+      return null;
+    }
+  },
+
+  isDriver(): boolean {
+    return Boolean(localStorage.getItem("schneider_access_token") && authService.getSessionUser()?.role === "driver");
+  },
+
   signIn(email: string, password: string) {
     return apiRequest<SignInResponse>("/auth/signin/", {
       method: "POST",
@@ -30,6 +44,7 @@ export const authService = {
     }).then((session) => {
       localStorage.setItem("schneider_access_token", session.access);
       localStorage.setItem("schneider_refresh_token", session.refresh);
+      localStorage.setItem("schneider_user", JSON.stringify(session.user));
       return session;
     });
   },
@@ -51,5 +66,6 @@ export const authService = {
   signOut() {
     localStorage.removeItem("schneider_access_token");
     localStorage.removeItem("schneider_refresh_token");
+    localStorage.removeItem("schneider_user");
   },
 };

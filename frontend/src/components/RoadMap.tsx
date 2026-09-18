@@ -60,12 +60,18 @@ export function RoadMap({ events, route, generatedRoute }: RoadMapProps) {
             : lastStopCoordinates;
         if (!coordinates) return;
         lastStopCoordinates = coordinates;
-        L.circleMarker(coordinates, {
-          radius: 8,
-          color: "#111",
-          weight: 2,
-          fillColor: "#111",
-          fillOpacity: 1,
+        const markerLabel = event.note.includes("Fueling")
+          ? "F"
+          : event.status === "Sleeper" || event.status === "Off duty"
+            ? "R"
+            : "S";
+        L.marker(coordinates, {
+          icon: L.divIcon({
+            className: "map-truck-marker-wrap",
+            html: `<span class="map-truck-marker-body">${markerLabel}</span>`,
+            iconSize: [24, 18],
+            iconAnchor: [12, 9],
+          }),
         }).addTo(map).bindTooltip(`${event.location} · ${event.note}`, {
           direction: "top",
           offset: [0, -8],
@@ -73,6 +79,31 @@ export function RoadMap({ events, route, generatedRoute }: RoadMapProps) {
           className: "map-stop-sign",
         });
       });
+    const currentStop = [...events].reverse().find((event) => event.status !== "Driving");
+    if (currentStop) {
+      const fallbackStop = routeStops.find((stop) => stop.name === currentStop.city || stop.name === currentStop.location);
+      const coordinates: [number, number] | undefined = currentStop.latitude !== undefined && currentStop.longitude !== undefined
+        ? [currentStop.latitude, currentStop.longitude]
+        : fallbackStop
+          ? [fallbackStop.lat, fallbackStop.lng]
+          : routeStops[0]
+            ? [routeStops[0].lat, routeStops[0].lng]
+            : undefined;
+      if (coordinates) {
+        L.circleMarker(coordinates, {
+          radius: 13,
+          color: "#111",
+          weight: 3,
+          fillColor: "#ef6e1c",
+          fillOpacity: 0.95,
+        }).addTo(map).bindTooltip(`Truck stopped · ${currentStop.location}`, {
+          direction: "top",
+          offset: [0, -12],
+          permanent: true,
+          className: "map-current-stop-sign",
+        });
+      }
+    }
     if (routeStops.length) L.circleMarker([origin.lat, origin.lng], {
       radius: 11,
       color: "#ef6e1c",
@@ -84,7 +115,7 @@ export function RoadMap({ events, route, generatedRoute }: RoadMapProps) {
     return () => {
       map.remove();
     };
-  }, [isExpanded, route, generatedRoute]);
+  }, [events, isExpanded, route, generatedRoute]);
 
   return (
     <section className="road-map" aria-label="Current road route">

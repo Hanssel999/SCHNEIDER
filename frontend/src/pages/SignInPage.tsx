@@ -1,10 +1,11 @@
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../components/AuthLayout";
 import { authService } from "../services/auth";
 
 export function SignInPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -12,7 +13,12 @@ export function SignInPage() {
     const form = new FormData(event.currentTarget);
     try {
       const session = await authService.signIn(String(form.get("email")), String(form.get("password")));
-      setFeedback(`Signed in as ${session.user.first_name} ${session.user.last_name}.`);
+      if (session.user.role === "driver") {
+        navigate("/driver", { replace: true });
+      } else {
+        setFeedback("This account is not a driver account.");
+        authService.signOut();
+      }
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to sign in with those credentials.");
     }

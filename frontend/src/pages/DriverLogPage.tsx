@@ -162,7 +162,7 @@ export function DriverLogPage() {
 
 	const totalHours = useMemo(
 		() =>
-			Object.values(log.dutyHours).reduce((total, hours) => total + hours, 0),
+			Math.round(Object.values(log.dutyHours).reduce((total, hours) => total + hours, 0)),
 		[log.dutyHours],
 	);
 	const setField = <K extends keyof DriverLog>(

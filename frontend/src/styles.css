@@ -244,10 +244,13 @@ fieldset legend { margin-bottom: 0.45rem; }
 .road-map-close { position: absolute; z-index: 1000; top: 1.25rem; right: 1.25rem; width: 2.5rem; height: 2.5rem; border: 1px solid rgba(36, 49, 46, 0.2); color: #24312e; background: #fffdf7; cursor: pointer; font: inherit; font-size: 1.7rem; line-height: 1; box-shadow: 0 0.3rem 0.8rem rgba(36, 49, 46, 0.16); }
 .road-map-close:hover { color: #ef6e1c; }
 .road-map-canvas.is-expanded .leaflet-control-zoom { margin-left: 1.25rem; margin-bottom: 1.25rem; }
+.map-truck-marker-wrap { width: 24px !important; height: 18px !important; border: 0; background: transparent; }
+.map-truck-marker-body { position: absolute; top: 0; left: 3px; display: grid; width: 18px; height: 18px; border: 2px solid #fffdf7; border-radius: 50%; color: #fffdf7; background: #ef6e1c; box-shadow: 0 1px 4px rgba(36, 49, 46, 0.4); box-sizing: border-box; font-size: 0.62rem; font-weight: 800; place-items: center; }
 .leaflet-container { color: #24312e; font-family: "DM Sans", sans-serif; }
 .leaflet-control-zoom a { color: #24312e; }
 .leaflet-tooltip { border: 1px solid #c8d0c7; border-radius: 0; color: #24312e; background: #fffdf7; box-shadow: 0 0.25rem 0.6rem rgba(36, 49, 46, 0.1); font-size: 0.68rem; font-weight: 700; }
 .map-stop-sign { border-color: #111; color: #fffdf7; background: #111; font-size: 0.58rem; }
+.map-current-stop-sign { border-color: #ef6e1c; color: #fffdf7; background: #24312e; font-size: 0.68rem; }
 .road-map-footer { display: flex; justify-content: space-between; gap: 1rem; padding-top: 0.6rem; color: #748078; font-size: 0.58rem; text-transform: uppercase; }
 .road-map-footer strong { color: #ef6e1c; font-size: 0.55rem; letter-spacing: 0.1em; }
 .timeline-section { padding: 1.3rem 0 1.4rem; border-top: 1px solid #d9ded6; }

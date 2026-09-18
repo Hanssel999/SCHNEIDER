@@ -26,6 +26,7 @@ export type TimelineEvent = {
   note: string;
   latitude?: number;
   longitude?: number;
+  auto_rest?: boolean;
 };
 
 export const dutyRows = ["Off duty", "Sleeper", "Driving", "On duty"];

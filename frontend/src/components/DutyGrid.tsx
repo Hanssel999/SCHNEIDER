@@ -36,7 +36,7 @@ export function DutyGrid({ log }: DutyGridProps) {
       </div>
       <div className="duty-total">
         <span>Total hours</span>
-        <strong>{Object.values(log.dutyHours).reduce((sum, value) => sum + value, 0)} / 24</strong>
+        <strong>{Math.round(Object.values(log.dutyHours).reduce((sum, value) => sum + value, 0))} / 24</strong>
       </div>
     </section>
   );
