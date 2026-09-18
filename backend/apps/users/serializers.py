@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import User
+from .models import DriverRouteIntake, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -26,3 +26,14 @@ class SignUpSerializer(serializers.ModelSerializer):
 class SignInSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+
+
+class DriverRouteIntakeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DriverRouteIntake
+        fields = ("current_location", "pickup_location", "dropoff_location", "current_cycle_used")
+
+    def validate_current_cycle_used(self, value):
+        if value < 0 or value > 70:
+            raise serializers.ValidationError("Cycle used must be between 0 and 70 hours.")
+        return value

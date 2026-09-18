@@ -4,7 +4,8 @@ from rest_framework.views import APIView
 
 from common.responses import success_response
 
-from .serializers import SignInSerializer, SignUpSerializer, UserSerializer
+from .models import DriverRouteIntake
+from .serializers import DriverRouteIntakeSerializer, SignInSerializer, SignUpSerializer, UserSerializer
 from .services import AuthenticationService
 
 
@@ -29,3 +30,18 @@ class SignInView(APIView):
             return success_response({"detail": "Invalid email or password."}, status.HTTP_401_UNAUTHORIZED)
         session["user"] = UserSerializer(session["user"]).data
         return success_response(session)
+
+
+class DriverRouteIntakeView(APIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
+        intake = DriverRouteIntake.objects.order_by("-updated_at").first()
+        return success_response(DriverRouteIntakeSerializer(intake).data if intake else None)
+
+    def post(self, request):
+        intake = DriverRouteIntake.objects.order_by("-updated_at").first()
+        serializer = DriverRouteIntakeSerializer(intake, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        intake = serializer.save()
+        return success_response(DriverRouteIntakeSerializer(intake).data, status.HTTP_201_CREATED)

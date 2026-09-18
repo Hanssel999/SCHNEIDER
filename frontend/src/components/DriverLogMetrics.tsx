@@ -1,10 +1,14 @@
+import { RoadMap } from "./RoadMap";
+import { TimelineEvent } from "../utils/driverLogTypes";
+
 type DriverLogMetricsProps = {
   driverMiles: number;
   truckMiles: number;
   totalHours: number;
+  timeline: TimelineEvent[];
 };
 
-export function DriverLogMetrics({ driverMiles, truckMiles, totalHours }: DriverLogMetricsProps) {
+export function DriverLogMetrics({ driverMiles, truckMiles, totalHours, timeline }: DriverLogMetricsProps) {
   return (
     <aside className="metrics-panel" aria-label="Calculated totals">
       <div className="metrics-intro">
@@ -21,6 +25,7 @@ export function DriverLogMetrics({ driverMiles, truckMiles, totalHours }: Driver
         <span className="status-pip" />
         <span>{totalHours === 24 ? "Log complete · 24 hours accounted for" : `${24 - totalHours} hours still unassigned`}</span>
       </div>
+      <RoadMap events={timeline} />
     </aside>
   );
 }

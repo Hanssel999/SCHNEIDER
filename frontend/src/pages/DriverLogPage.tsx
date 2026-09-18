@@ -353,6 +353,7 @@ export function DriverLogPage() {
 					driverMiles={log.driverMiles}
 					truckMiles={log.truckMiles}
 					totalHours={totalHours}
+					timeline={timeline}
 				/>
 			</div>
 
