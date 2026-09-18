@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { FleetLegend } from "../components/FleetLegend";
 import { ParticleField } from "../components/ParticleField";
+import { authService } from "../services/auth";
 
 type HealthResponse = {
   status: string;
@@ -33,6 +35,9 @@ export function HomePage() {
       <header className="topbar">
         <span className="topbar-mark">SCHNEIDER</span>
         <span className="topbar-caption">ELD · Fleet operations</span>
+        <Link className="topbar-action" to={authService.isDriver() ? "/driver" : "/signin"}>
+          {authService.isDriver() ? "Driver page" : "Sign in"} <span>→</span>
+        </Link>
       </header>
       <section className="hero" aria-labelledby="brand-title">
         <p className="eyebrow">Electronic logging, made visible</p>

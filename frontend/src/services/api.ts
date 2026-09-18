@@ -16,6 +16,13 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   });
   const data = (await response.json()) as T | ApiError;
   if (!response.ok) {
+    if (response.status === 401 && accessToken && !path.includes("/signin/")) {
+      localStorage.removeItem("schneider_access_token");
+      localStorage.removeItem("schneider_refresh_token");
+      localStorage.removeItem("schneider_user");
+      window.location.replace("/signin");
+      return new Promise<T>(() => undefined);
+    }
     throw new Error(formatApiError(data as ApiError));
   }
   return data as T;

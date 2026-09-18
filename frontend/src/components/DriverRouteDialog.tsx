@@ -31,6 +31,10 @@ export function DriverRouteDialog({ initialData, loading, error, onGenerate, onC
   const [submitting, setSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<FieldErrors>({});
 
+  useEffect(() => {
+    if (initialData) setForm(initialData);
+  }, [initialData]);
+
   const update = (field: keyof DriverRouteIntake, value: string | number) => {
     setForm((current) => {
       const next = { ...current, [field]: value };
@@ -57,7 +61,11 @@ export function DriverRouteDialog({ initialData, loading, error, onGenerate, onC
     if (!form.current_location.trim()) nextErrors.current_location = "Enter your current city.";
     if (!form.pickup_location.trim()) nextErrors.pickup_location = "Enter a pickup city.";
     if (!form.dropoff_location.trim()) nextErrors.dropoff_location = "Enter a dropoff city.";
-    if (!Number.isFinite(form.current_cycle_used) || form.current_cycle_used < 0 || form.current_cycle_used > 70) {
+    const normalizedForm = {
+      ...form,
+      current_cycle_used: Number.isFinite(form.current_cycle_used) ? form.current_cycle_used : 0,
+    };
+    if (normalizedForm.current_cycle_used < 0 || normalizedForm.current_cycle_used > 70) {
       nextErrors.current_cycle_used = "Use a value from 0 to 70 hours.";
     }
     setValidationErrors(nextErrors);
@@ -65,7 +73,7 @@ export function DriverRouteDialog({ initialData, loading, error, onGenerate, onC
 
     setSubmitting(true);
     try {
-      await onGenerate(form);
+      await onGenerate(normalizedForm);
     } catch {
       // The parent displays the API error in the dialog.
     } finally {
@@ -93,7 +101,7 @@ export function DriverRouteDialog({ initialData, loading, error, onGenerate, onC
             <CityField error={fieldError("dropoff_location")} icon={<Flag />} id="dropoff-location" label="Dropoff location" value={form.dropoff_location} onChange={(value) => update("dropoff_location", value)} onSelect={(location) => setForm((current) => ({ ...current, dropoff_location: location.label, dropoff_latitude: roundCoordinate(location.lat), dropoff_longitude: roundCoordinate(location.lon) }))} />
             <label className="driver-route-field" htmlFor="current-cycle-used">
               <span className="driver-route-label"><Clock3 aria-hidden="true" />Current cycle used (hrs)</span>
-              <input aria-describedby={fieldError("current_cycle_used") ? "current-cycle-used-error" : undefined} aria-invalid={Boolean(fieldError("current_cycle_used"))} id="current-cycle-used" max="70" min="0" step="0.1" type="number" value={form.current_cycle_used} onChange={(event) => update("current_cycle_used", Number(event.target.value))} />
+              <input aria-describedby={fieldError("current_cycle_used") ? "current-cycle-used-error" : undefined} aria-invalid={Boolean(fieldError("current_cycle_used"))} id="current-cycle-used" max="70" min="0" step="0.1" type="number" value={Number.isFinite(form.current_cycle_used) ? form.current_cycle_used : 0} onChange={(event) => update("current_cycle_used", event.target.value === "" ? 0 : Number(event.target.value))} />
               {fieldError("current_cycle_used") && <small className="driver-route-field-error" id="current-cycle-used-error">{fieldError("current_cycle_used")}</small>}
             </label>
             {error && <p className="driver-route-error" role="alert">{error}</p>}

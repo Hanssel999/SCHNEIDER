@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DriverLogMetrics } from "../components/DriverLogMetrics";
 import { DriverRouteDialog } from "../components/DriverRouteDialog";
 import { DutyGrid } from "../components/DutyGrid";
@@ -7,6 +8,7 @@ import { Timeline } from "../components/Timeline";
 import { DriverLog, TimelineEvent, dutyRows } from "../utils/driverLogTypes";
 import { formatDate, formatTime, getDutyHours, toMinutes } from "../utils";
 import { driverRouteService, DriverRouteIntake, GeneratedRoute } from "../services/driverRoute";
+import { authService } from "../services/auth";
 
 const initialLog: DriverLog = {
 	driverNumber: "1224213",
@@ -84,6 +86,7 @@ const initialTimeline: TimelineEvent[] = [
 ];
 
 export function DriverLogPage() {
+	const navigate = useNavigate();
 	const [routeData, setRouteData] = useState<DriverRouteIntake | null>(null);
 	const [routeChecked, setRouteChecked] = useState(false);
 	const [routeError, setRouteError] = useState<string | null>(null);
@@ -171,6 +174,11 @@ export function DriverLogPage() {
 	) => {
 		setSaved(false);
 		setLog((current) => ({ ...current, [field]: value }));
+	};
+
+	const signOut = () => {
+		authService.signOut();
+		navigate("/signin", { replace: true });
 	};
 
 	const addTimelineEvent = () => {
@@ -328,20 +336,7 @@ export function DriverLogPage() {
 					<h1>Driver's daily log</h1>
 				</div>
 				<div className="driver-actions">
-					{routeData && <button className="route-setup-button" onClick={() => setShowRouteDialog(true)} type="button">Route setup</button>}
-					<button
-						aria-pressed={mode === "edit"}
-						className="mode-switch"
-						onClick={() => setMode(mode === "edit" ? "view" : "edit")}
-						type="button"
-					>
-						<span
-							className={`switch-track ${mode === "edit" ? "is-editing" : ""}`}
-						>
-							<i />
-						</span>
-						<span>{mode === "edit" ? "Edit mode" : "View mode"}</span>
-					</button>
+					<button className="sign-out-button" onClick={signOut} type="button">Sign out</button>
 				</div>
 			</header>
 
@@ -351,6 +346,18 @@ export function DriverLogPage() {
 						<span>Driver's daily log</span>
 						<span>One calendar day · 24 hours</span>
 						<strong>{formatDate(log.date)}</strong>
+					</div>
+					<div className="log-paper-actions">
+						{routeData && <button className="route-setup-button" onClick={() => setShowRouteDialog(true)} type="button">Route setup</button>}
+						<button
+							aria-pressed={mode === "edit"}
+							className="mode-switch"
+							onClick={() => setMode(mode === "edit" ? "view" : "edit")}
+							type="button"
+						>
+							<span className={`switch-track ${mode === "edit" ? "is-editing" : ""}`}><i /></span>
+							<span>{mode === "edit" ? "Edit mode" : "View mode"}</span>
+						</button>
 					</div>
 					<form onSubmit={handleSubmit}>
 						<LogFields

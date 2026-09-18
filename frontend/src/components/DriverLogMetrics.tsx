@@ -27,8 +27,8 @@ export function DriverLogMetrics({ driverMiles, truckMiles, totalHours, timeline
         <p>Keep the paper log precise, then hand it back to the fleet in one clear view.</p>
       </div>
       <div className="metric-list">
-        <Metric label="Total driving miles" value={driverMiles.toLocaleString()} suffix="mi" />
-        <Metric label="Total truck miles" value={truckMiles.toLocaleString()} suffix="mi" />
+        <Metric label="Total driving miles" value={driverMiles.toFixed(1)} suffix="mi" />
+        <Metric label="Total truck miles" value={truckMiles.toFixed(1)} suffix="mi" />
         <Metric label="Total hours today" value={totalHours.toString()} suffix="hrs" />
       </div>
       <div className="status-note">

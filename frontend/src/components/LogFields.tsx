@@ -92,7 +92,8 @@ export function LogFields({ log, setField, disabled = false }: LogFieldsProps) {
           id="driver-miles"
           type="number"
           min="0"
-          value={log.driverMiles}
+          step="0.1"
+          value={log.driverMiles.toFixed(1)}
           onChange={(event) => setField("driverMiles", Number(event.target.value))}
         />
       </div>
@@ -103,7 +104,8 @@ export function LogFields({ log, setField, disabled = false }: LogFieldsProps) {
           id="truck-miles"
           type="number"
           min="0"
-          value={log.truckMiles}
+          step="0.1"
+          value={log.truckMiles.toFixed(1)}
           onChange={(event) => setField("truckMiles", Number(event.target.value))}
         />
       </div>
