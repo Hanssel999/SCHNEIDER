@@ -33,8 +33,8 @@ export function RoadMap({ events, route, generatedRoute }: RoadMapProps) {
       maxZoom: 19,
     }).addTo(map);
 
-    if (routeStops.length > 1) {
-      const routeLine = L.polyline(generatedRoute?.geometry?.length ? generatedRoute.geometry : routeStops.map((stop) => [stop.lat, stop.lng] as [number, number]), { color: "#ef6e1c", weight: 6, opacity: 0.95 }).addTo(map);
+    if (routeStops.length > 1 && generatedRoute?.geometry?.length) {
+      const routeLine = L.polyline(generatedRoute.geometry, { color: "#ef6e1c", weight: 6, opacity: 0.95 }).addTo(map);
       map.fitBounds(routeLine.getBounds(), { padding: [24, 24] });
     }
     routeStops.forEach((stop) => {

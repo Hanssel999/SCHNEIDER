@@ -14,7 +14,15 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
       ...options.headers,
     },
   });
-  const data = (await response.json()) as T | ApiError;
+  const responseBody = await response.text();
+  let data: T | ApiError;
+  try {
+    data = JSON.parse(responseBody) as T | ApiError;
+  } catch {
+    data = {
+      detail: `Server returned ${response.status} ${response.statusText} instead of JSON.`,
+    };
+  }
   if (!response.ok) {
     if (response.status === 401 && accessToken && !path.includes("/signin/")) {
       localStorage.removeItem("schneider_access_token");

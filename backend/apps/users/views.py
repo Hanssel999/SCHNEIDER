@@ -44,7 +44,7 @@ class DriverRouteIntakeView(APIView):
     permission_classes = (IsDriver,)
 
     def get(self, request):
-        intake = DriverRouteIntake.objects.order_by("-updated_at").first()
+        intake = DriverRouteIntake.objects.filter(user=request.user).first()
         route = None
         if intake:
             stored_daily_logs = intake.generated_daily_logs
@@ -66,22 +66,25 @@ class DriverRouteIntakeView(APIView):
                 and any(event.get("location") == "Cycle reset" for event in daily_log.get("events", []))
                 for daily_log in stored_daily_logs
             )
-            has_legacy_geometry = not intake.route_geometry
+            has_legacy_geometry = len(intake.route_geometry) <= 3
             if (first_day_events and not has_work_event) or has_legacy_fuel_event or has_legacy_daily_rest or has_redundant_cycle_rest or has_legacy_geometry:
-                route = plan_route({
-                    "current_latitude": intake.current_latitude,
-                    "current_longitude": intake.current_longitude,
-                    "current_location": intake.current_location,
-                    "pickup_latitude": intake.pickup_latitude,
-                    "pickup_longitude": intake.pickup_longitude,
-                    "pickup_location": intake.pickup_location,
-                    "dropoff_latitude": intake.dropoff_latitude,
-                    "dropoff_longitude": intake.dropoff_longitude,
-                    "dropoff_location": intake.dropoff_location,
-                    "current_cycle_used": intake.current_cycle_used,
-                })
+                try:
+                    route = plan_route({
+                        "current_latitude": intake.current_latitude,
+                        "current_longitude": intake.current_longitude,
+                        "current_location": intake.current_location,
+                        "pickup_latitude": intake.pickup_latitude,
+                        "pickup_longitude": intake.pickup_longitude,
+                        "pickup_location": intake.pickup_location,
+                        "dropoff_latitude": intake.dropoff_latitude,
+                        "dropoff_longitude": intake.dropoff_longitude,
+                        "dropoff_location": intake.dropoff_location,
+                        "current_cycle_used": intake.current_cycle_used,
+                    })
+                except ValueError as error:
+                    return success_response({"detail": str(error)}, status.HTTP_503_SERVICE_UNAVAILABLE)
             if route is not None:
-                return success_response({"intake": DriverRouteIntakeSerializer(intake).data, "route": route})
+                return success_response({"intake": DriverRouteIntakeSerializer(intake).data, "route": route, "daily_log": intake.driver_log_data})
             route = {
                 "distance_miles": float(intake.route_distance_miles),
                 "cycle_after_hours": 0,
@@ -93,13 +96,32 @@ class DriverRouteIntakeView(APIView):
         return success_response({"intake": DriverRouteIntakeSerializer(intake).data if intake else None, "route": route})
 
     def post(self, request):
-        intake = DriverRouteIntake.objects.order_by("-updated_at").first()
+        intake = DriverRouteIntake.objects.filter(user=request.user).first()
         serializer = DriverRouteIntakeSerializer(intake, data=request.data)
         serializer.is_valid(raise_exception=True)
-        print(serializer.validated_data)
         try:
             route = plan_route(serializer.validated_data)
         except ValueError as error:
             return success_response({"detail": str(error)}, status.HTTP_400_BAD_REQUEST)
-        intake = serializer.save(route_distance_miles=route["distance_miles"], generated_timeline=route["timeline"], generated_daily_logs=route["daily_logs"], route_geometry=route["geometry"])
+        intake = serializer.save(
+            user=request.user,
+            route_distance_miles=route["distance_miles"],
+            generated_timeline=route["timeline"],
+            generated_daily_logs=route["daily_logs"],
+            driver_log_data={},
+            route_geometry=route["geometry"],
+        )
         return success_response({"intake": DriverRouteIntakeSerializer(intake).data, "route": route}, status.HTTP_201_CREATED)
+
+    def patch(self, request):
+        intake = DriverRouteIntake.objects.filter(user=request.user).first()
+        if intake is None:
+            return success_response({"detail": "Generate a route before saving a daily log."}, status.HTTP_404_NOT_FOUND)
+
+        daily_log = request.data.get("daily_log")
+        if not isinstance(daily_log, dict):
+            return success_response({"detail": "daily_log must be an object."}, status.HTTP_400_BAD_REQUEST)
+
+        intake.driver_log_data = daily_log
+        intake.save(update_fields=("driver_log_data", "updated_at"))
+        return success_response({"daily_log": intake.driver_log_data})

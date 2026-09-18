@@ -29,14 +29,22 @@ def format_time(minutes):
 def routed_geometry(points):
     coordinates = ";".join(f"{float(point[1])},{float(point[0])}" for point in points)
     url = f"https://router.project-osrm.org/route/v1/driving/{quote(coordinates, safe=';,') }?overview=full&geometries=geojson"
-    try:
-        request = Request(url, headers={"User-Agent": "SchneiderFleet/1.0"})
-        with urlopen(request, timeout=8) as response:
-            route = loads(response.read().decode("utf-8"))["routes"][0]
-        geometry = [[latitude, longitude] for longitude, latitude in route["geometry"]["coordinates"]]
-        return route["distance"] / 1609.344, geometry
-    except Exception:
-        return sum(distance_miles(points[index][:2], points[index + 1][:2]) for index in range(len(points) - 1)), [[float(point[0]), float(point[1])] for point in points]
+    last_error = None
+    for _ in range(2):
+        try:
+            request = Request(url, headers={"User-Agent": "SchneiderFleet/1.0"})
+            with urlopen(request, timeout=12) as response:
+                payload = loads(response.read().decode("utf-8"))
+            if payload.get("code") != "Ok" or not payload.get("routes"):
+                raise ValueError("The road routing service could not find a drivable route.")
+            route = payload["routes"][0]
+            geometry = [[latitude, longitude] for longitude, latitude in route["geometry"]["coordinates"]]
+            return route["distance"] / 1609.344, geometry
+        except ValueError:
+            raise
+        except Exception as error:
+            last_error = error
+    raise ValueError("The road routing service is unavailable. Please try again.") from last_error
 
 
 def point_at_distance(geometry, target_miles):

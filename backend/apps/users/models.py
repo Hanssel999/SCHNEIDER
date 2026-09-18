@@ -26,6 +26,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class DriverRouteIntake(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="driver_route", null=True, blank=True)
     current_location = models.CharField(max_length=200)
     pickup_location = models.CharField(max_length=200)
     dropoff_location = models.CharField(max_length=200)
@@ -39,5 +40,6 @@ class DriverRouteIntake(models.Model):
     route_distance_miles = models.DecimalField(max_digits=8, decimal_places=1, default=0)
     generated_timeline = models.JSONField(default=list)
     generated_daily_logs = models.JSONField(default=list)
+    driver_log_data = models.JSONField(default=dict)
     route_geometry = models.JSONField(default=list)
     updated_at = models.DateTimeField(auto_now=True)
