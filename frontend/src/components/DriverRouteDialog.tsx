@@ -16,6 +16,12 @@ const emptyData: DriverRouteIntake = {
   pickup_location: "",
   dropoff_location: "",
   current_cycle_used: 0,
+  current_latitude: null,
+  current_longitude: null,
+  pickup_latitude: null,
+  pickup_longitude: null,
+  dropoff_latitude: null,
+  dropoff_longitude: null,
 };
 
 type FieldErrors = Partial<Record<keyof DriverRouteIntake, string>>;
@@ -26,7 +32,22 @@ export function DriverRouteDialog({ initialData, loading, error, onGenerate, onC
   const [validationErrors, setValidationErrors] = useState<FieldErrors>({});
 
   const update = (field: keyof DriverRouteIntake, value: string | number) => {
-    setForm((current) => ({ ...current, [field]: value }));
+    setForm((current) => {
+      const next = { ...current, [field]: value };
+      if (field === "current_location") {
+        next.current_latitude = null;
+        next.current_longitude = null;
+      }
+      if (field === "pickup_location") {
+        next.pickup_latitude = null;
+        next.pickup_longitude = null;
+      }
+      if (field === "dropoff_location") {
+        next.dropoff_latitude = null;
+        next.dropoff_longitude = null;
+      }
+      return next;
+    });
     setValidationErrors((current) => ({ ...current, [field]: undefined }));
   };
 
@@ -67,9 +88,9 @@ export function DriverRouteDialog({ initialData, loading, error, onGenerate, onC
           <p className="driver-route-loading">Retrieving your saved route...</p>
         ) : (
           <form className="driver-route-form" onSubmit={handleSubmit}>
-            <CityField error={fieldError("current_location")} icon={<MapPin />} id="current-location" label="Current location" value={form.current_location} onChange={(value) => update("current_location", value)} />
-            <CityField error={fieldError("pickup_location")} icon={<PackageOpen />} id="pickup-location" label="Pickup location" value={form.pickup_location} onChange={(value) => update("pickup_location", value)} />
-            <CityField error={fieldError("dropoff_location")} icon={<Flag />} id="dropoff-location" label="Dropoff location" value={form.dropoff_location} onChange={(value) => update("dropoff_location", value)} />
+            <CityField error={fieldError("current_location")} icon={<MapPin />} id="current-location" label="Current location" value={form.current_location} onChange={(value) => update("current_location", value)} onSelect={(location) => setForm((current) => ({ ...current, current_location: location.label, current_latitude: roundCoordinate(location.lat), current_longitude: roundCoordinate(location.lon) }))} />
+            <CityField error={fieldError("pickup_location")} icon={<PackageOpen />} id="pickup-location" label="Pickup location" value={form.pickup_location} onChange={(value) => update("pickup_location", value)} onSelect={(location) => setForm((current) => ({ ...current, pickup_location: location.label, pickup_latitude: roundCoordinate(location.lat), pickup_longitude: roundCoordinate(location.lon) }))} />
+            <CityField error={fieldError("dropoff_location")} icon={<Flag />} id="dropoff-location" label="Dropoff location" value={form.dropoff_location} onChange={(value) => update("dropoff_location", value)} onSelect={(location) => setForm((current) => ({ ...current, dropoff_location: location.label, dropoff_latitude: roundCoordinate(location.lat), dropoff_longitude: roundCoordinate(location.lon) }))} />
             <label className="driver-route-field" htmlFor="current-cycle-used">
               <span className="driver-route-label"><Clock3 aria-hidden="true" />Current cycle used (hrs)</span>
               <input aria-describedby={fieldError("current_cycle_used") ? "current-cycle-used-error" : undefined} aria-invalid={Boolean(fieldError("current_cycle_used"))} id="current-cycle-used" max="70" min="0" step="0.1" type="number" value={form.current_cycle_used} onChange={(event) => update("current_cycle_used", Number(event.target.value))} />
@@ -93,6 +114,7 @@ function CityField({
   label,
   value,
   onChange,
+  onSelect,
 }: {
   error?: string;
   icon: ReactNode;
@@ -100,8 +122,9 @@ function CityField({
   label: string;
   value: string;
   onChange: (value: string) => void;
+  onSelect: (location: { label: string; lat: number; lon: number }) => void;
 }) {
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<Array<{ label: string; lat: number; lon: number }>>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const errorId = `${id}-error`;
@@ -119,14 +142,14 @@ function CityField({
         headers: { Accept: "application/json" },
         signal: controller.signal,
       })
-        .then((response) => response.ok ? response.json() as Promise<Array<{ display_name: string; address?: { city?: string; town?: string; village?: string; state?: string; country?: string } }>> : [])
+        .then((response) => response.ok ? response.json() as Promise<Array<{ display_name: string; lat: string; lon: string; address?: { city?: string; town?: string; village?: string; state?: string; country?: string } }>> : [])
         .then((results) => {
           const names = results.map((result) => {
             const address = result.address ?? {};
             const city = address.city ?? address.town ?? address.village;
-            return city ? [city, address.state, address.country].filter(Boolean).join(", ") : result.display_name;
+            return { label: city ? [city, address.state, address.country].filter(Boolean).join(", ") : result.display_name, lat: Number(result.lat), lon: Number(result.lon) };
           });
-          setSuggestions([...new Set(names)]);
+          setSuggestions(names.filter((result) => Number.isFinite(result.lat) && Number.isFinite(result.lon)).filter((result, index, all) => all.findIndex((item) => item.label === result.label) === index));
         })
         .catch(() => setSuggestions([]))
         .finally(() => setIsSearching(false));
@@ -146,8 +169,8 @@ function CityField({
           <ul className="city-suggestions" id={`${id}-suggestions`} role="listbox">
             {isSearching && <li className="city-suggestion-status">Searching cities...</li>}
             {suggestions.map((suggestion) => (
-              <li key={suggestion} role="option">
-                <button onMouseDown={(event) => event.preventDefault()} onClick={() => { onChange(suggestion); setSuggestions([]); setIsFocused(false); }} type="button">{suggestion}</button>
+              <li key={`${suggestion.label}-${suggestion.lat}`} role="option">
+                <button onMouseDown={(event) => event.preventDefault()} onClick={() => { onSelect(suggestion); setSuggestions([]); setIsFocused(false); }} type="button">{suggestion.label}</button>
               </li>
             ))}
           </ul>
@@ -156,4 +179,8 @@ function CityField({
       {error && <small className="driver-route-field-error" id={errorId}>{error}</small>}
     </label>
   );
+}
+
+function roundCoordinate(value: number) {
+  return Number(value.toFixed(6));
 }

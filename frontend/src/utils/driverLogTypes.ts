@@ -24,6 +24,8 @@ export type TimelineEvent = {
   country: string;
   city: string;
   note: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 export const dutyRows = ["Off duty", "Sleeper", "Driving", "On duty"];

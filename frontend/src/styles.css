@@ -237,6 +237,7 @@ fieldset legend { margin-bottom: 0.45rem; }
 .road-map-live i { width: 0.42rem; height: 0.42rem; border-radius: 50%; background: #76a27e; box-shadow: 0 0 0 3px rgba(118, 162, 126, 0.15); }
 .road-map-canvas { position: relative; overflow: hidden; min-height: 24rem; border: 1px solid #bdc9bb; background: #dce7d8; }
 .leaflet-map { width: 100%; height: 24rem; }
+.road-map-empty { position: absolute; z-index: 400; top: 50%; left: 50%; padding: 0.65rem 0.8rem; color: #53645a; background: rgba(255, 253, 247, 0.92); font-size: 0.68rem; transform: translate(-50%, -50%); white-space: nowrap; }
 .road-map-canvas:not(.is-expanded) { cursor: zoom-in; }
 .road-map-canvas.is-expanded { position: fixed; z-index: 20; inset: 0; min-height: 100vh; border: 0; background: #dce7d8; cursor: default; }
 .road-map-canvas.is-expanded .leaflet-map { width: 100%; height: 100vh; }
@@ -246,10 +247,15 @@ fieldset legend { margin-bottom: 0.45rem; }
 .leaflet-container { color: #24312e; font-family: "DM Sans", sans-serif; }
 .leaflet-control-zoom a { color: #24312e; }
 .leaflet-tooltip { border: 1px solid #c8d0c7; border-radius: 0; color: #24312e; background: #fffdf7; box-shadow: 0 0.25rem 0.6rem rgba(36, 49, 46, 0.1); font-size: 0.68rem; font-weight: 700; }
+.map-stop-sign { border-color: #111; color: #fffdf7; background: #111; font-size: 0.58rem; }
 .road-map-footer { display: flex; justify-content: space-between; gap: 1rem; padding-top: 0.6rem; color: #748078; font-size: 0.58rem; text-transform: uppercase; }
 .road-map-footer strong { color: #ef6e1c; font-size: 0.55rem; letter-spacing: 0.1em; }
 .timeline-section { padding: 1.3rem 0 1.4rem; border-top: 1px solid #d9ded6; }
 .shipment-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; padding: 0.9rem 0 1.2rem; border-top: 1px solid #d9ded6; }
+.daily-log-tabs { display: flex; align-items: center; gap: 0.45rem; overflow-x: auto; padding: 0.9rem 0; border-top: 1px solid #d9ded6; border-bottom: 1px solid #d9ded6; }
+.daily-log-tabs > span { margin-right: 0.35rem; color: #7a867e; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+.daily-log-tabs button { padding: 0.42rem 0.6rem; border: 1px solid #c8d0c7; color: #68766d; background: transparent; cursor: pointer; font: inherit; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.daily-log-tabs button.active, .daily-log-tabs button:hover { border-color: #ef6e1c; color: #fffdf7; background: #ef6e1c; }
 .shipment-field { display: grid; gap: 0.35rem; min-width: 0; }
 .shipment-field label { color: #7a867e; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 .shipment-field input { width: 100%; padding: 0.52rem 0.55rem; border: 1px solid #d9ded6; border-radius: 0; outline: 0; color: #24312e; background: #fffdf7; font: inherit; font-size: 0.78rem; }
@@ -265,7 +271,7 @@ fieldset legend { margin-bottom: 0.45rem; }
 .chart-row-subtitle { fill: #536f9e; font-size: 9px; text-transform: uppercase; }
 .chart-hour-label, .chart-bottom-label { fill: #536f9e; font-size: 11px; font-weight: 700; }
 .chart-duty-path { fill: none; stroke: #111; stroke-linecap: square; stroke-linejoin: miter; stroke-width: 5; }
-.chart-disabled-path { fill: none; stroke: #b7c0b8; stroke-linecap: square; stroke-linejoin: miter; stroke-width: 5; }
+.chart-disabled-path { fill: none; stroke: #111; stroke-linecap: square; stroke-linejoin: miter; stroke-width: 5; }
 .chart-bottom-ruler { stroke: #536f9e; stroke-width: 1.5; }
 .chart-long-tick, .chart-quarter-tick { stroke: #536f9e; stroke-width: 1.5; }
 .chart-remarks-label { fill: #536f9e; font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }

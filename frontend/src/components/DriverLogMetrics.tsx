@@ -1,4 +1,5 @@
 import { RoadMap } from "./RoadMap";
+import { DriverRouteIntake, GeneratedRoute } from "../services/driverRoute";
 import { TimelineEvent } from "../utils/driverLogTypes";
 
 type DriverLogMetricsProps = {
@@ -6,9 +7,18 @@ type DriverLogMetricsProps = {
   truckMiles: number;
   totalHours: number;
   timeline: TimelineEvent[];
+  route: DriverRouteIntake | null;
+  generatedRoute: GeneratedRoute | null;
 };
 
-export function DriverLogMetrics({ driverMiles, truckMiles, totalHours, timeline }: DriverLogMetricsProps) {
+export function DriverLogMetrics({ driverMiles, truckMiles, totalHours, timeline, route, generatedRoute }: DriverLogMetricsProps) {
+  const mapEvents = generatedRoute?.daily_logs?.flatMap((day) =>
+    day.events.map((event) => ({
+      ...event,
+      note: `${day.date_label} · ${event.note}`,
+    })),
+  ) ?? timeline;
+
   return (
     <aside className="metrics-panel" aria-label="Calculated totals">
       <div className="metrics-intro">
@@ -25,7 +35,11 @@ export function DriverLogMetrics({ driverMiles, truckMiles, totalHours, timeline
         <span className="status-pip" />
         <span>{totalHours === 24 ? "Log complete · 24 hours accounted for" : `${24 - totalHours} hours still unassigned`}</span>
       </div>
-      <RoadMap events={timeline} />
+      <RoadMap
+        events={mapEvents}
+        route={route}
+        generatedRoute={generatedRoute}
+      />
     </aside>
   );
 }

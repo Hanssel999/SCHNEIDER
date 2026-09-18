@@ -6,7 +6,7 @@ import { LogFields } from "../components/LogFields";
 import { Timeline } from "../components/Timeline";
 import { DriverLog, TimelineEvent, dutyRows } from "../utils/driverLogTypes";
 import { formatDate, formatTime, getDutyHours, toMinutes } from "../utils";
-import { driverRouteService, DriverRouteIntake } from "../services/driverRoute";
+import { driverRouteService, DriverRouteIntake, GeneratedRoute } from "../services/driverRoute";
 
 const initialLog: DriverLog = {
 	driverNumber: "1224213",
@@ -88,6 +88,8 @@ export function DriverLogPage() {
 	const [routeChecked, setRouteChecked] = useState(false);
 	const [routeError, setRouteError] = useState<string | null>(null);
 	const [showRouteDialog, setShowRouteDialog] = useState(false);
+	const [generatedRoute, setGeneratedRoute] = useState<GeneratedRoute | null>(null);
+	const [selectedDay, setSelectedDay] = useState(0);
 	const [mode, setMode] = useState<"edit" | "view">("edit");
 	const [log, setLog] = useState(initialLog);
 	const [timeline, setTimeline] = useState(initialTimeline);
@@ -100,17 +102,57 @@ export function DriverLogPage() {
 		driverRouteService.get()
 			.then((data) => {
 				setRouteError(null);
-				setRouteData(data);
+				setRouteData(data.intake);
+				if (data.route?.timeline?.length && data.intake) applyGeneratedRoute(data.route, data.intake);
 			})
 			.catch(() => setRouteError("Could not retrieve route data. Check that the backend is running."))
 			.finally(() => setRouteChecked(true));
 	}, []);
 
+	const applyGeneratedRoute = (route: GeneratedRoute, intake: DriverRouteIntake = routeData!) => {
+		setGeneratedRoute(route);
+		setSelectedDay(0);
+		const firstDay = route.daily_logs[0]?.events ?? route.timeline;
+		const firstDayLog = route.daily_logs[0];
+		setTimeline(firstDay);
+		setLog((current) => ({
+			...current,
+			date: new Date().toISOString().slice(0, 10),
+			homeTerminal: intake.current_location,
+			shipper: intake.pickup_location,
+			driverMiles: firstDayLog?.driver_miles ?? drivingMilesForDay(firstDay),
+			truckMiles: firstDayLog?.truck_miles ?? drivingMilesForDay(firstDay),
+			dutyHours: getDutyHours(firstDay),
+		}));
+	};
+
+	const selectDay = (dayIndex: number) => {
+		const day = generatedRoute?.daily_logs[dayIndex];
+		if (!day) return;
+		setSelectedDay(dayIndex);
+		setTimeline(day.events);
+		setLog((current) => ({
+			...current,
+			driverMiles: day.driver_miles ?? drivingMilesForDay(day.events),
+			truckMiles: day.truck_miles ?? drivingMilesForDay(day.events),
+			dutyHours: getDutyHours(day.events),
+		}));
+	};
+
+	const drivingMilesForDay = (events: TimelineEvent[]) => events
+		.filter((event) => event.status === "Driving")
+		.reduce((miles, event) => {
+			const [startHour, startMinute] = event.start.split(":").map(Number);
+			const [endHour, endMinute] = event.end.split(":").map(Number);
+			return miles + ((endHour * 60 + endMinute) - (startHour * 60 + startMinute)) / 60 * 55;
+		}, 0);
+
 	const generateDailyLog = async (data: DriverRouteIntake) => {
 		setRouteError(null);
 		try {
 			const savedRoute = await driverRouteService.save(data);
-			setRouteData(savedRoute);
+			setRouteData(savedRoute.intake);
+			applyGeneratedRoute(savedRoute.route, savedRoute.intake);
 			setShowRouteDialog(false);
 		} catch (error) {
 			setRouteError(error instanceof Error ? error.message : "Could not generate the daily log.");
@@ -316,6 +358,14 @@ export function DriverLogPage() {
 							setField={setField}
 							disabled={mode === "view"}
 						/>
+						{generatedRoute && generatedRoute.daily_logs.length > 1 && (
+							<nav aria-label="Daily logs" className="daily-log-tabs">
+								<span>Generated logs</span>
+								{generatedRoute.daily_logs.map((day, index) => (
+									<button aria-pressed={selectedDay === index} className={selectedDay === index ? "active" : ""} key={day.day} onClick={() => selectDay(index)} type="button">{day.date_label}</button>
+								))}
+							</nav>
+						)}
 						<Timeline
 							events={timeline}
 							editable={mode === "edit"}
@@ -387,6 +437,8 @@ export function DriverLogPage() {
 					truckMiles={log.truckMiles}
 					totalHours={totalHours}
 					timeline={timeline}
+					route={routeData}
+					generatedRoute={generatedRoute}
 				/>
 			</div>
 
