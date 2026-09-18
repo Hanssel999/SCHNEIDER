@@ -1,5 +1,8 @@
 # SCHNEIDER
 
-# Backend: Python DJango
+## Stack
 
-# Frontend: TypeScript React
+- Backend: Django, Django REST Framework, SimpleJWT
+- Database: PostgreSQL 17
+- Frontend: TypeScript React
+
