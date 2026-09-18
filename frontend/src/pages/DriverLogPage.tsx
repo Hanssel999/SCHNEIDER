@@ -35,6 +35,8 @@ const initialTimeline: TimelineEvent[] = [
 		start: "00:00",
 		end: "06:00",
 		location: "Green Bay, WI",
+		country: "United States",
+		city: "Green Bay",
 		note: "Rest",
 	},
 	{
@@ -43,6 +45,8 @@ const initialTimeline: TimelineEvent[] = [
 		start: "06:00",
 		end: "12:00",
 		location: "I-43 North",
+		country: "United States",
+		city: "Green Bay",
 		note: "En route to shipper",
 	},
 	{
@@ -51,6 +55,8 @@ const initialTimeline: TimelineEvent[] = [
 		start: "12:00",
 		end: "18:00",
 		location: "Green Bay, WI",
+		country: "United States",
+		city: "Green Bay",
 		note: "Loading and paperwork",
 	},
 	{
@@ -59,6 +65,8 @@ const initialTimeline: TimelineEvent[] = [
 		start: "18:00",
 		end: "22:00",
 		location: "US-41 South",
+		country: "United States",
+		city: "Green Bay",
 		note: "Load in transit",
 	},
 	{
@@ -67,6 +75,8 @@ const initialTimeline: TimelineEvent[] = [
 		start: "22:00",
 		end: "24:00",
 		location: "Appleton, WI",
+		country: "United States",
+		city: "Appleton",
 		note: "Parked",
 	},
 ];
@@ -76,6 +86,9 @@ export function DriverLogPage() {
 	const [log, setLog] = useState(initialLog);
 	const [timeline, setTimeline] = useState(initialTimeline);
 	const [saved, setSaved] = useState(false);
+	const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+	const [eventDraft, setEventDraft] = useState({ country: "", city: "", note: "" });
+	const selectedEvent = timeline.find((event) => event.id === selectedEventId) ?? null;
 
 	const totalHours = useMemo(
 		() =>
@@ -88,17 +101,6 @@ export function DriverLogPage() {
 	) => {
 		setSaved(false);
 		setLog((current) => ({ ...current, [field]: value }));
-	};
-
-	const setDutyHours = (duty: string, value: string) => {
-		setSaved(false);
-		setLog((current) => ({
-			...current,
-			dutyHours: {
-				...current.dutyHours,
-				[duty]: Math.max(0, Math.min(24, Number(value) || 0)),
-			},
-		}));
 	};
 
 	const addTimelineEvent = () => {
@@ -123,6 +125,8 @@ export function DriverLogPage() {
 				start: formatTime(startMinutes),
 				end: formatTime(endMinutes),
 				location: "Location not added",
+				country: "",
+				city: "",
 				note: "New event",
 			},
 		];
@@ -144,9 +148,23 @@ export function DriverLogPage() {
 		setSaved(false);
 	};
 
-	const updateTimelineNote = (id: number, note: string) => {
+	const updateTimelineDetails = (id: number, country: string, city: string, note: string) => {
 		setSaved(false);
-		setTimeline((current) => current.map((event) => event.id === id ? { ...event, note } : event));
+		setTimeline((current) => current.map((event) => event.id === id ? {
+			...event,
+			country,
+			city,
+			location: [city, country].filter(Boolean).join(", ") || "Location not added",
+			note,
+		} : event));
+		setSelectedEventId(null);
+	};
+
+	const openEventEditor = (id: number) => {
+		const event = timeline.find((timelineEvent) => timelineEvent.id === id);
+		if (!event) return;
+		setEventDraft({ country: event.country, city: event.city, note: event.note });
+		setSelectedEventId(id);
 	};
 
 	const updateTimelineEvent = (
@@ -271,7 +289,7 @@ export function DriverLogPage() {
 							onAdd={addTimelineEvent}
 							onRemove={removeTimelineEvent}
 							onUpdate={updateTimelineEvent}
-							onUpdateNote={updateTimelineNote}
+							onSelect={openEventEditor}
 						/>
 						<div className="shipment-fields">
 							<div className="shipment-field">
@@ -304,8 +322,6 @@ export function DriverLogPage() {
 						</div>
 						<DutyGrid
 							log={log}
-							setDutyHours={setDutyHours}
-							editable={mode === "edit"}
 						/>
 						<div className="remarks-row">
 							<label htmlFor="remarks">Remarks</label>
@@ -339,6 +355,29 @@ export function DriverLogPage() {
 					totalHours={totalHours}
 				/>
 			</div>
+
+			{mode === "edit" && selectedEvent && (
+				<div className="dialog-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setSelectedEventId(null)}>
+					<section aria-labelledby="key-point-dialog-title" aria-modal="true" className="event-dialog" role="dialog">
+						<div className="dialog-heading">
+							<div>
+								<span className="form-label">Key point / {selectedEvent.start}</span>
+								<h2 id="key-point-dialog-title">Edit details</h2>
+							</div>
+							<button aria-label="Close key point dialog" className="dialog-close" onClick={() => setSelectedEventId(null)} type="button">×</button>
+						</div>
+						<form className="event-form" onSubmit={(event) => { event.preventDefault(); updateTimelineDetails(selectedEvent.id, eventDraft.country.trim(), eventDraft.city.trim(), eventDraft.note.trim()); }}>
+							<label htmlFor="event-country">Country<input autoFocus id="event-country" value={eventDraft.country} onChange={(event) => setEventDraft((current) => ({ ...current, country: event.target.value }))} /></label>
+							<label htmlFor="event-city">City<input id="event-city" value={eventDraft.city} onChange={(event) => setEventDraft((current) => ({ ...current, city: event.target.value }))} /></label>
+							<label htmlFor="event-action">What to do<input id="event-action" value={eventDraft.note} onChange={(event) => setEventDraft((current) => ({ ...current, note: event.target.value }))} /></label>
+							<div className="dialog-actions">
+								<button className="dialog-cancel" onClick={() => setSelectedEventId(null)} type="button">Cancel</button>
+								<button className="dialog-submit" type="submit">Save details <span>→</span></button>
+							</div>
+						</form>
+					</section>
+				</div>
+			)}
 		</main>
 	);
 }

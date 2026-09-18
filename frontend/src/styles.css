@@ -171,7 +171,7 @@ fieldset legend { margin-bottom: 0.45rem; }
 .switch-track.is-editing i { transform: translateX(1.05rem); }
 .mode-button { padding: 0.6rem 0.75rem; border: 1px solid #c8d0c7; color: #68766d; background: transparent; cursor: pointer; font: inherit; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .mode-button.active, .mode-button:hover { border-color: #ef6e1c; color: #fffdf2; background: #ef6e1c; }
-.driver-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.28fr); gap: clamp(1.5rem, 4vw, 4.5rem); max-width: 1440px; margin: 0 auto; padding: clamp(1.5rem, 4vw, 4rem); }
+.driver-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.24fr); gap: clamp(1.5rem, 4vw, 4.5rem); max-width: 1700px; margin: 0 auto; padding: clamp(1.5rem, 4vw, 4rem); }
 .log-paper { min-width: 0; padding: clamp(1rem, 3vw, 2.4rem); background: #fffdf7; box-shadow: 0 1.5rem 3rem rgba(57, 68, 60, 0.1); }
 .log-paper-topline { display: flex; align-items: baseline; gap: 1rem; padding-bottom: 1rem; border-bottom: 3px solid #24312e; color: #758078; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 .log-paper-topline span:first-child { color: #24312e; font-family: "Barlow Condensed", sans-serif; font-size: 1.6rem; letter-spacing: 0.02em; }
@@ -201,8 +201,8 @@ fieldset legend { margin-bottom: 0.45rem; }
 .duty-fill-1 { background: #a8c8b2; }
 .duty-fill-2 { background: #ef6e1c; }
 .duty-fill-3 { background: #e8ae6f; }
-.duty-hours { display: flex; align-items: center; gap: 0.2rem; color: #68766d; font-size: 0.62rem; }
-.duty-hours input { width: 2rem; padding: 0.25rem 0.15rem; border: 1px solid #d9ded6; color: #24312e; background: #fffdf7; font: inherit; text-align: center; }
+.duty-hours { display: flex; align-items: center; justify-content: flex-end; gap: 0.2rem; min-width: 0; color: #68766d; font-size: 0.62rem; white-space: nowrap; }
+.duty-hours input { box-sizing: border-box; width: 2rem; min-width: 0; padding: 0.25rem 0.1rem; border: 1px solid #d9ded6; color: #24312e; background: #fffdf7; font: inherit; text-align: center; }
 .duty-hours input:disabled { border-color: transparent; background: transparent; }
 .duty-total { display: flex; justify-content: flex-end; gap: 0.65rem; margin-top: 0.9rem; padding-top: 0.8rem; border-top: 1px solid #d9ded6; color: #7a867e; font-size: 0.65rem; text-transform: uppercase; }
 .duty-total strong { color: #24312e; }
@@ -250,18 +250,20 @@ fieldset legend { margin-bottom: 0.45rem; }
 .chart-disabled-path { fill: none; stroke: #b7c0b8; stroke-linecap: square; stroke-linejoin: miter; stroke-width: 5; }
 .chart-bottom-ruler { stroke: #536f9e; stroke-width: 1.5; }
 .chart-long-tick, .chart-quarter-tick { stroke: #536f9e; stroke-width: 1.5; }
-.chart-remarks-label { fill: #536f9e; font-size: 18px; font-weight: 700; letter-spacing: 0.04em; }
+.chart-remarks-label { fill: #536f9e; font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
 .chart-remark-callout path { fill: none; stroke: #111; stroke-width: 3; }
 .chart-remark-callout text { fill: #111; font-size: 12px; font-weight: 700; text-anchor: middle; }
 .chart-not-driving-section path { fill: none; stroke: #111; stroke-width: 3; }
 .chart-not-driving-section text { fill: #111; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; }
-.chart-not-driving-section .chart-section-info { fill: #536f9e; font-size: 8px; font-weight: 500; letter-spacing: 0; }
+.chart-not-driving-section .chart-section-info { fill: #536f9e; font-size: 12px; font-weight: 600; letter-spacing: 0; }
 .chart-event-dot { stroke: #fffdf7; stroke-width: 2; }
 .chart-keypoint { cursor: move; stroke: #111; stroke-width: 2; }
 .chart-dot-off-duty { fill: #a9c79e; }
 .chart-dot-sleeper { fill: #6eaa82; }
 .chart-dot-driving { fill: #ef6e1c; }
 .chart-dot-on-duty { fill: #d6934a; }
+.chart-remark-label { cursor: pointer; }
+.chart-remark-label:hover { fill: #ef6e1c; }
 .timeline-heading { display: flex; justify-content: space-between; align-items: end; gap: 1rem; margin-bottom: 1.7rem; }
 .timeline-heading h2 { margin: 0.25rem 0 0; color: #24312e; font-family: "Barlow Condensed", sans-serif; font-size: 1.55rem; text-transform: uppercase; }
 .add-event-button { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.55rem 0.75rem; border: 1px solid #ef6e1c; color: #ef6e1c; background: transparent; cursor: pointer; font: inherit; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -283,6 +285,9 @@ fieldset legend { margin-bottom: 0.45rem; }
 .timeline-on-duty { background: #e8ae6f; }
 .timeline-event-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem 1rem; margin: 1rem 0 0 5.7rem; }
 .timeline-event-detail { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 0.45rem; min-width: 0; color: #68766d; font-size: 0.59rem; }
+.timeline-event-detail { width: 100%; padding: 0; border: 0; background: transparent; font: inherit; text-align: left; }
+.timeline-event-detail:enabled { cursor: pointer; }
+.timeline-event-detail:enabled:hover strong, .timeline-event-detail:enabled:hover span:not(.event-dot) { color: #ef6e1c; }
 .timeline-event-detail strong { color: #24312e; font-size: 0.6rem; }
 .timeline-event-detail span:not(.event-dot) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .timeline-event-detail small { grid-column: 2 / -1; overflow: hidden; color: #8d988e; text-overflow: ellipsis; white-space: nowrap; }
@@ -301,7 +306,7 @@ fieldset legend { margin-bottom: 0.45rem; }
 .hos-fill-1::before { background: #a8c8b2; }
 .hos-fill-2::before { background: #ef6e1c; }
 .hos-fill-3::before { background: #e8ae6f; }
-.timeline-remarks-label { margin: 0.8rem 0 0.7rem; color: #7a867e; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.timeline-remarks { display: grid; grid-template-columns: 5.7rem minmax(0, 1fr); align-items: start; gap: 0.4rem; margin-top: 1rem; }
 .timeline-remove-list { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.8rem; }
 .timeline-remove-list button { padding: 0.3rem 0.45rem; border: 1px solid #d9ded6; color: #879288; background: transparent; cursor: pointer; font: inherit; font-size: 0.52rem; }
 .timeline-remove-list button:hover { border-color: #ef6e1c; color: #ef6e1c; }
@@ -358,7 +363,7 @@ fieldset legend { margin-bottom: 0.45rem; }
   .duty-row { grid-template-columns: 4.2rem minmax(0, 1fr) 2.1rem; gap: 0.25rem; }
   .duty-name { font-size: 0.5rem; }
   .duty-hours { font-size: 0.5rem; }
-  .duty-hours input { width: 1.7rem; font-size: 0.6rem; }
+  .duty-hours input { width: 1.7rem; padding-right: 0; padding-left: 0; font-size: 0.6rem; }
   .duty-track { gap: 1px; }
   .log-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.9rem 0.55rem; }
   .summary-item strong { font-size: 0.72rem; }

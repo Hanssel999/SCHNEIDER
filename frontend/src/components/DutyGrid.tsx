@@ -2,11 +2,9 @@ import { DriverLog, dutyRows, hourLabels } from "../utils/driverLogTypes";
 
 type DutyGridProps = {
   log: DriverLog;
-  setDutyHours: (duty: string, value: string) => void;
-  editable?: boolean;
 };
 
-export function DutyGrid({ log, setDutyHours, editable = false }: DutyGridProps) {
+export function DutyGrid({ log }: DutyGridProps) {
   return (
     <section className="duty-section" aria-label="Duty status hours">
       <div className="duty-heading">
@@ -31,7 +29,7 @@ export function DutyGrid({ log, setDutyHours, editable = false }: DutyGridProps)
               ))}
             </div>
             <label className="duty-hours">
-              <input aria-label={`${duty} hours`} disabled={!editable} type="number" min="0" max="24" value={log.dutyHours[duty]} onChange={(event) => setDutyHours(duty, event.target.value)} /> h
+              <input aria-label={`${duty} hours`} readOnly type="text" min="0" max="24" value={log.dutyHours[duty]} /> h
             </label>
           </div>
         ))}

@@ -21,6 +21,8 @@ export type TimelineEvent = {
   start: string;
   end: string;
   location: string;
+  country: string;
+  city: string;
   note: string;
 };
 
