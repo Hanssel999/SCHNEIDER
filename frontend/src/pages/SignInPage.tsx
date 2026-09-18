@@ -1,13 +1,21 @@
 import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 import { AuthLayout } from "../components/AuthLayout";
+import { authService } from "../services/auth";
 
 export function SignInPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitted(true);
+    setFeedback(null);
+    const form = new FormData(event.currentTarget);
+    try {
+      const session = await authService.signIn(String(form.get("email")), String(form.get("password")));
+      setFeedback(`Signed in as ${session.user.first_name} ${session.user.last_name}.`);
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Unable to sign in with those credentials.");
+    }
   };
 
   return (
@@ -40,7 +48,7 @@ export function SignInPage() {
           <Link to="/signin">Forgot password?</Link>
         </div>
         <button className="primary-button" type="submit">Sign in <span>→</span></button>
-        {submitted && <p className="form-feedback" role="status">Credentials received. Connecting to your fleet...</p>}
+        {feedback && <p className="form-feedback" role="status">{feedback}</p>}
       </form>
     </AuthLayout>
   );

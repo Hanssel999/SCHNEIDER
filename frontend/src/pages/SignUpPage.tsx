@@ -1,15 +1,30 @@
 import { FormEvent, useState } from "react";
 import { AuthLayout } from "../components/AuthLayout";
+import { authService } from "../services/auth";
 
-type AccountRole = "driver" | "manager";
+import type { AccountRole } from "../services/auth";
 
 export function SignUpPage() {
   const [role, setRole] = useState<AccountRole>("driver");
-  const [submitted, setSubmitted] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitted(true);
+    setFeedback(null);
+    const form = new FormData(event.currentTarget);
+    try {
+      const data = await authService.signUp({
+        email: String(form.get("email")),
+        first_name: String(form.get("firstName")),
+        last_name: String(form.get("lastName")),
+        password: String(form.get("password")),
+        password_confirm: String(form.get("confirmPassword")),
+        role,
+      });
+      setFeedback(data.message);
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Unable to create your account.");
+    }
   };
 
   return (
@@ -65,7 +80,7 @@ export function SignUpPage() {
         </div>
         <label className="checkbox-label terms-label"><input type="checkbox" required /> I agree to the Terms and Privacy Policy.</label>
         <button className="primary-button" type="submit">Create my account <span>→</span></button>
-        {submitted && <p className="form-feedback" role="status">Your account request is ready for the fleet setup step.</p>}
+        {feedback && <p className="form-feedback" role="status">{feedback}</p>}
       </form>
     </AuthLayout>
   );
