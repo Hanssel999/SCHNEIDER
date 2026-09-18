@@ -37,7 +37,7 @@ class DriverRouteIntakeView(APIView):
 
     def get(self, request):
         intake = DriverRouteIntake.objects.order_by("-updated_at").first()
-        return success_response(DriverRouteIntakeSerializer(intake).data if intake else None)
+        return success_response({"intake": DriverRouteIntakeSerializer(intake).data if intake else None})
 
     def post(self, request):
         intake = DriverRouteIntake.objects.order_by("-updated_at").first()

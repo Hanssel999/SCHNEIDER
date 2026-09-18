@@ -1,10 +1,12 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { DriverLogMetrics } from "../components/DriverLogMetrics";
+import { DriverRouteDialog } from "../components/DriverRouteDialog";
 import { DutyGrid } from "../components/DutyGrid";
 import { LogFields } from "../components/LogFields";
 import { Timeline } from "../components/Timeline";
 import { DriverLog, TimelineEvent, dutyRows } from "../utils/driverLogTypes";
 import { formatDate, formatTime, getDutyHours, toMinutes } from "../utils";
+import { driverRouteService, DriverRouteIntake } from "../services/driverRoute";
 
 const initialLog: DriverLog = {
 	driverNumber: "1224213",
@@ -82,6 +84,10 @@ const initialTimeline: TimelineEvent[] = [
 ];
 
 export function DriverLogPage() {
+	const [routeData, setRouteData] = useState<DriverRouteIntake | null>(null);
+	const [routeChecked, setRouteChecked] = useState(false);
+	const [routeError, setRouteError] = useState<string | null>(null);
+	const [showRouteDialog, setShowRouteDialog] = useState(false);
 	const [mode, setMode] = useState<"edit" | "view">("edit");
 	const [log, setLog] = useState(initialLog);
 	const [timeline, setTimeline] = useState(initialTimeline);
@@ -89,6 +95,28 @@ export function DriverLogPage() {
 	const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
 	const [eventDraft, setEventDraft] = useState({ country: "", city: "", note: "" });
 	const selectedEvent = timeline.find((event) => event.id === selectedEventId) ?? null;
+
+	useEffect(() => {
+		driverRouteService.get()
+			.then((data) => {
+				setRouteError(null);
+				setRouteData(data);
+			})
+			.catch(() => setRouteError("Could not retrieve route data. Check that the backend is running."))
+			.finally(() => setRouteChecked(true));
+	}, []);
+
+	const generateDailyLog = async (data: DriverRouteIntake) => {
+		setRouteError(null);
+		try {
+			const savedRoute = await driverRouteService.save(data);
+			setRouteData(savedRoute);
+			setShowRouteDialog(false);
+		} catch (error) {
+			setRouteError(error instanceof Error ? error.message : "Could not generate the daily log.");
+			throw error;
+		}
+	};
 
 	const totalHours = useMemo(
 		() =>
@@ -243,6 +271,10 @@ export function DriverLogPage() {
 		setMode("view");
 	};
 
+	if (!routeChecked || !routeData) {
+		return <DriverRouteDialog initialData={routeData} loading={!routeChecked} error={routeError} onGenerate={generateDailyLog} />;
+	}
+
 	return (
 		<main className="driver-shell">
 			<header className="driver-header">
@@ -254,6 +286,7 @@ export function DriverLogPage() {
 					<h1>Driver's daily log</h1>
 				</div>
 				<div className="driver-actions">
+					{routeData && <button className="route-setup-button" onClick={() => setShowRouteDialog(true)} type="button">Route setup</button>}
 					<button
 						aria-pressed={mode === "edit"}
 						className="mode-switch"
@@ -356,6 +389,10 @@ export function DriverLogPage() {
 					timeline={timeline}
 				/>
 			</div>
+
+			{showRouteDialog && routeData && (
+				<DriverRouteDialog initialData={routeData} loading={false} error={routeError} onCancel={() => setShowRouteDialog(false)} onGenerate={generateDailyLog} />
+			)}
 
 			{mode === "edit" && selectedEvent && (
 				<div className="dialog-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setSelectedEventId(null)}>
