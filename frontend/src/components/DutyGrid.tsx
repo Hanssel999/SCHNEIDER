@@ -1,0 +1,45 @@
+import { DriverLog, dutyRows, hourLabels } from "./driverLogTypes";
+
+type DutyGridProps = {
+  log: DriverLog;
+  setDutyHours: (duty: string, value: string) => void;
+  editable?: boolean;
+};
+
+export function DutyGrid({ log, setDutyHours, editable = false }: DutyGridProps) {
+  return (
+    <section className="duty-section" aria-label="Duty status hours">
+      <div className="duty-heading">
+        <div>
+          <span className="form-label">Duty status</span>
+          <h2>Hours on the road</h2>
+        </div>
+        <span className="hours-caption">Total hours / 24</span>
+      </div>
+      <div className="hour-scale">
+        {hourLabels.map((hour) => (
+          <span key={hour}>{hour === 0 ? "M" : hour === 12 ? "N" : hour === 24 ? "M" : hour}</span>
+        ))}
+      </div>
+      <div className="duty-rows">
+        {dutyRows.map((duty, rowIndex) => (
+          <div className="duty-row" key={duty}>
+            <span className={`duty-name duty-${rowIndex}`}>{duty}</span>
+            <div className="duty-track">
+              {Array.from({ length: 24 }, (_, index) => (
+                <i className={index < log.dutyHours[duty] ? `filled duty-fill-${rowIndex}` : ""} key={index} />
+              ))}
+            </div>
+            <label className="duty-hours">
+              <input aria-label={`${duty} hours`} disabled={!editable} type="number" min="0" max="24" value={log.dutyHours[duty]} onChange={(event) => setDutyHours(duty, event.target.value)} /> h
+            </label>
+          </div>
+        ))}
+      </div>
+      <div className="duty-total">
+        <span>Total hours</span>
+        <strong>{Object.values(log.dutyHours).reduce((sum, value) => sum + value, 0)} / 24</strong>
+      </div>
+    </section>
+  );
+}

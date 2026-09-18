@@ -1,3 +1,5 @@
+import { formatApiError } from "../utils";
+
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 
 type ApiError = Record<string, unknown>;
@@ -15,9 +17,4 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     throw new Error(formatApiError(data as ApiError));
   }
   return data as T;
-}
-
-function formatApiError(error: ApiError) {
-  if (typeof error.detail === "string") return error.detail;
-  return Object.values(error).flat().join(" ") || "Something went wrong. Please try again.";
 }
