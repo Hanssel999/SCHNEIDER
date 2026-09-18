@@ -1,4 +1,4 @@
-import { TimelineEvent, dutyRows } from "../components/driverLogTypes";
+import { TimelineEvent, dutyRows } from "./driverLogTypes";
 
 type ApiError = Record<string, unknown>;
 

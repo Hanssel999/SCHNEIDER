@@ -3,7 +3,7 @@ import { DriverLogMetrics } from "../components/DriverLogMetrics";
 import { DutyGrid } from "../components/DutyGrid";
 import { LogFields } from "../components/LogFields";
 import { Timeline } from "../components/Timeline";
-import { DriverLog, TimelineEvent, dutyRows } from "../components/driverLogTypes";
+import { DriverLog, TimelineEvent, dutyRows } from "../utils/driverLogTypes";
 import { formatDate, formatTime, getDutyHours, toMinutes } from "../utils";
 
 const initialLog: DriverLog = {
@@ -22,8 +22,8 @@ const initialLog: DriverLog = {
 	truckMiles: 427,
 	dutyHours: {
 		"Off duty": 8,
-		Sleeper: 0,
-		Driving: 10,
+		"Sleeper": 0,
+		"Driving": 10,
 		"On duty": 6,
 	},
 };
@@ -65,7 +65,7 @@ const initialTimeline: TimelineEvent[] = [
 		id: 5,
 		status: "Off duty",
 		start: "22:00",
-		end: "23:00",
+		end: "24:00",
 		location: "Appleton, WI",
 		note: "Parked",
 	},
@@ -110,7 +110,7 @@ export function DriverLogPage() {
 		const lastKeypointMinutes = toMinutes(lastEvent.start);
 		if (lastKeypointMinutes >= 1440) return;
 		const startMinutes = Math.min(1440, lastKeypointMinutes + 15);
-		const endMinutes = Math.min(1440, startMinutes + 15);
+		const endMinutes = 1440;
 		if (endMinutes < startMinutes) return;
 		const nextStatus =
 			dutyRows.find((duty) => duty !== lastEvent.status) ?? dutyRows[0];
@@ -142,6 +142,11 @@ export function DriverLogPage() {
 			dutyHours: getDutyHours(nextTimeline),
 		}));
 		setSaved(false);
+	};
+
+	const updateTimelineNote = (id: number, note: string) => {
+		setSaved(false);
+		setTimeline((current) => current.map((event) => event.id === id ? { ...event, note } : event));
 	};
 
 	const updateTimelineEvent = (
@@ -266,6 +271,7 @@ export function DriverLogPage() {
 							onAdd={addTimelineEvent}
 							onRemove={removeTimelineEvent}
 							onUpdate={updateTimelineEvent}
+							onUpdateNote={updateTimelineNote}
 						/>
 						<div className="shipment-fields">
 							<div className="shipment-field">

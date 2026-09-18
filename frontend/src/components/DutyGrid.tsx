@@ -1,4 +1,4 @@
-import { DriverLog, dutyRows, hourLabels } from "./driverLogTypes";
+import { DriverLog, dutyRows, hourLabels } from "../utils/driverLogTypes";
 
 type DutyGridProps = {
   log: DriverLog;

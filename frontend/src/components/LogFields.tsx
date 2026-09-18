@@ -1,4 +1,4 @@
-import { DriverLog } from "./driverLogTypes";
+import { DriverLog } from "../utils/driverLogTypes";
 
 type LogFieldsProps = {
   log: DriverLog;

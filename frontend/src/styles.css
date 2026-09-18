@@ -253,6 +253,9 @@ fieldset legend { margin-bottom: 0.45rem; }
 .chart-remarks-label { fill: #536f9e; font-size: 18px; font-weight: 700; letter-spacing: 0.04em; }
 .chart-remark-callout path { fill: none; stroke: #111; stroke-width: 3; }
 .chart-remark-callout text { fill: #111; font-size: 12px; font-weight: 700; text-anchor: middle; }
+.chart-not-driving-section path { fill: none; stroke: #111; stroke-width: 3; }
+.chart-not-driving-section text { fill: #111; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; }
+.chart-not-driving-section .chart-section-info { fill: #536f9e; font-size: 8px; font-weight: 500; letter-spacing: 0; }
 .chart-event-dot { stroke: #fffdf7; stroke-width: 2; }
 .chart-keypoint { cursor: move; stroke: #111; stroke-width: 2; }
 .chart-dot-off-duty { fill: #a9c79e; }
