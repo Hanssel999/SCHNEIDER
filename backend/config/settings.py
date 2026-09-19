@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -62,16 +63,19 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DB_ENGINE = os.getenv("DB_ENGINE", "postgresql").lower()
 if DB_ENGINE == "postgresql":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("DB_NAME", "schneider"),
-            "USER": os.getenv("DB_USER", "imonstar"),
-            "PASSWORD": os.getenv("DB_PASSWORD", "Minor123!@#123"),
-            "HOST": os.getenv("DB_HOST", "127.0.0.1"),
-            "PORT": os.getenv("DB_PORT", "5432"),
-        }
-    }
+    database_url = os.getenv("DATABASE_URL", "").strip()
+    DATABASES = {}
+    if database_url:
+        DATABASES["default"] = dj_database_url.parse(
+            database_url,
+            conn_max_age=0,
+        )
+        DATABASES["default"].setdefault("OPTIONS", {}).setdefault(
+            "sslmode", "require"
+        )
+        DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
+    elif os.getenv("VERCEL") == "1":
+        raise RuntimeError("DATABASE_URL must be configured on Vercel.")
 else:
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / os.getenv("DB_NAME", "db.sqlite3")}}
 
